@@ -1,4 +1,4 @@
-class Podman < Formula
+class PodmanDocker < Formula
   desc "Emulate Docker CLI using podman"
   homepage "https://podman.io/"
   url "https://github.com/containers/podman/archive/v4.3.1.tar.gz"
@@ -6,10 +6,18 @@ class Podman < Formula
   license all_of: ["Apache-2.0", "GPL-3.0-or-later"]
   head "https://github.com/containers/podman.git", branch: "main"
 
+  depends_on "coreutils" => :build
+  depends_on "go" => :build
   depends_on "podman"
 
   def install
-    system "make", "install.docker-full"
+    # We need gnu `install` in the PATH for the makefile to work correctly
+    coreutils_path = ENV["HOMEBREW_PREFIX"] + "/opt/coreutils/libexec/gnubin"
+    new_path = coreutils_path + ":" + ENV["PATH"]
+    with_env("PREFIX" => prefix, "PATH" => new_path) do
+      system "make", "docker-docs"
+      system "make", "install.docker-full"
+    end
   end
 
   test do
